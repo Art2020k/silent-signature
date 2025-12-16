@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デスク環境最適化 診断ツール Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Noto Sans JP', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .amazon-btn {
+            background: #FF9900;
+            transition: all 0.2s;
+        }
+        .amazon-btn:hover {
+            background: #FFB84D;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 153, 0, 0.3);
+        }
+        .option-btn:hover {
+            border-color: #4F46E5;
+            background-color: #EEF2FF;
+        }
+        .option-btn.selected {
+            border-color: #4F46E5;
+            background-color: #E0E7FF;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 class="text-base font-bold flex items-center gap-2 text-slate-700">
+                <i data-lucide="monitor-smartphone" class="w-5 h-5 text-indigo-600"></i>
+                <span>Gadget Diagnosis <span class="text-xs text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded ml-1">Pro</span></span>
+            </h1>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-3xl mx-auto px-4 py-8 w-full">
+        
+        <!-- スタート画面 -->
+        <div id="intro-screen" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center mt-4">
+            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-600">
+                <i data-lucide="search-check" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-3 text-slate-800">理想のデスク環境を<br>導き出します</h2>
+            <p class="text-slate-500 mb-8 text-sm leading-relaxed">
+                作業効率、身体の負担、そしてデザインの好み。<br>
+                5つの質問から、今のあなたに最適な<br>ガジェット構成を提案します。
+            </p>
+            <button onclick="startDiagnosis()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 px-12 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center gap-2 mx-auto">
+                <span>診断を始める</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- 質問画面 -->
+        <div id="quiz-screen" class="hidden mt-4">
+            <div class="flex items-center gap-4 mb-6 px-1">
+                <div class="flex-grow h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-indigo-600 transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+                <span class="text-xs font-bold text-slate-400 whitespace-nowrap">Q.<span id="current-q-num">1</span> / 5</span>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 fade-in min-h-[400px] flex flex-col">
+                <h3 id="question-text" class="text-xl font-bold mb-8 text-center text-slate-800 leading-snug">質問テキスト</h3>
+                
+                <div id="options-container" class="space-y-3 flex-grow">
+                    <!-- 選択肢 -->
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-100 flex justify-between items-center text-sm">
+                    <button id="back-btn" onclick="prevStep()" class="text-slate-400 hover:text-slate-600 flex items-center gap-1 invisible">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>戻る
+                    </button>
+                    <span class="text-xs text-gray-300">Next Question -></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ローディング -->
+        <div id="loading-screen" class="hidden text-center py-24 fade-in">
+            <div class="relative w-16 h-16 mx-auto mb-6">
+                <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <h3 class="text-lg font-bold text-slate-700 mb-2">分析中...</h3>
+            <p class="text-sm text-slate-500">回答傾向から適合率を算出しています</p>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="result-screen" class="hidden fade-in pb-12">
+            <div class="bg-indigo-900 text-white p-8 rounded-2xl shadow-lg mb-8 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                <p class="text-indigo-300 text-xs font-bold tracking-widest mb-2 uppercase relative z-10">Recommended For You</p>
+                <h2 class="text-2xl font-bold relative z-10">あなたへの推奨セットアップ</h2>
+            </div>
+
+            <div id="results-container" class="grid gap-6">
+                <!-- 結果カード -->
+            </div>
+
+            <div class="mt-12 text-center">
+                <button onclick="resetDiagnosis()" class="text-slate-500 hover:text-slate-800 text-sm underline decoration-slate-300 underline-offset-4">
+                    もう一度最初から診断する
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // ★★★ 設定エリア：ここを変えるだけで別の診断ツールになります ★★★
+        const AFFILIATE_ID = 'artphotograph-22'; // あなたのAmazon ID
+
+        // 商品データ（タグ付けを詳細にしました）
+        // OS: 'mac', 'win', 'both'
+        // Design: 'dark', 'light', 'wood'
+        const products = [
+            {
+                name: 'Logicool MX Master 3S',
+                price: '16,900',
+                desc: 'クリエイターの必需品。静音クリックと高速スクロールは一度使うと戻れません。Mac/Win両対応の神マウス。',
+                tags: ['efficiency', 'both', 'dark'],
+                keyword: 'Logicool MX Master 3S',
+                badge: '作業効率UP'
+            },
+            {
+                name: 'Apple Magic Trackpad',
+                price: '19,800',
+                desc: 'Macユーザーならマウスよりこれ。ジェスチャー操作で画面を行き来する感覚は唯一無二です。',
+                tags: ['efficiency', 'mac', 'light'], // Mac専用
+                keyword: 'Apple Magic Trackpad',
+                badge: 'Mac必須'
+            },
+            {
+                name: 'HHKB Professional HYBRID Type-S',
+                price: '36,850',
+                desc: '「一生モノ」のキーボード。スコスコという極上の打鍵感。プログラマーやライターが最終的に行き着く到達点。',
+                tags: ['typing', 'both', 'dark', 'light'], // 白黒両方あるので両方のタグ付けも可（今回は簡易化）
+                keyword: 'HHKB Professional HYBRID Type-S',
+                badge: '至高の打鍵感'
+            },
+            {
+                name: 'FlexiSpot E7 昇降デスク',
+                price: '57,000',
+                desc: '座りっぱなしは寿命を縮めます。ボタン一つで立ち作業に切り替え。腰痛持ちの救世主です。',
+                tags: ['pain', 'health', 'both', 'wood'],
+                keyword: 'FlexiSpot E7',
+                badge: '腰痛対策'
+            },
+            {
+                name: 'BenQ ScreenBar Halo',
+                price: '19,000',
+                desc: 'モニターの上に置くだけ。手元を明るくしつつ画面への映り込みはゼロ。夜間の作業集中力が段違いです。',
+                tags: ['pain', 'focus', 'both', 'dark'],
+                keyword: 'BenQ ScreenBar Halo',
+                badge: '目疲れ軽減'
+            },
+            {
+                name: 'CalDigit TS4 ドッキングステーション',
+                price: '54,000',
+                desc: 'MacBookユーザーのゴール地点。ケーブル1本で充電も映像出力も周辺機器接続も全て解決。',
+                tags: ['efficiency', 'mac', 'space'],
+                keyword: 'CalDigit TS4',
+                badge: '配線整理'
+            },
+            {
+                name: 'Anker PowerConf C300',
+                price: '9,990',
+                desc: 'WEB会議の印象は「画質」で決まります。暗い部屋でも明るく補正。営業や面接が多いなら投資対効果大。',
+                tags: ['meeting', 'both', 'dark'],
+                keyword: 'Anker PowerConf C300',
+                badge: '会議品質'
+            }
+        ];
+
+        // 質問データ（5問に増量）
+        const questions = [
+            {
+                text: "Q1. 現在のデスクワークで、一番解決したい悩みは？",
+                options: [
+                    { text: "首・肩・腰の痛み、目の疲れ", tags: ['pain', 'health'] },
+                    { text: "作業効率をもっと上げたい", tags: ['efficiency', 'typing'] },
+                    { text: "デスクが狭い・配線が汚い", tags: ['space'] },
+                    { text: "WEB会議の品質を上げたい", tags: ['meeting'] }
+                ]
+            },
+            {
+                text: "Q2. お使いのメインPC（OS）は？",
+                // ここでMacかWinかで商品を絞り込む重要フラグ
+                options: [
+                    { text: "Mac (MacBook / iMac)", tags: ['mac'] },
+                    { text: "Windows", tags: ['win'] },
+                    { text: "両方使っている", tags: ['both'] }
+                ]
+            },
+            {
+                text: "Q3. デスク周りの「色・デザイン」の好みは？",
+                options: [
+                    { text: "黒・グレー系のシックな感じ", tags: ['dark'] },
+                    { text: "白・シルバー系の明るい感じ", tags: ['light'] },
+                    { text: "木目調やナチュラルな感じ", tags: ['wood'] }
+                ]
+            },
+            {
+                text: "Q4. ガジェットへの投資スタンスは？",
+                options: [
+                    { text: "とにかく「最高性能・ハイエンド」", scoreBonus: 2 }, // スコア加算用
+                    { text: "「コスパ」重視で賢く揃えたい", scoreBonus: 0 }
+                ]
+            },
+            {
+                text: "Q5. 1日のデスク作業時間は？",
+                options: [
+                    { text: "2〜4時間（副業・趣味程度）", scoreBonus: 0 },
+                    { text: "8時間以上（ガッツリ仕事）", scoreBonus: 2 } // 長時間なら高単価・健康系を推しやすくなる
+                ]
+            }
+        ];
+
+        // ------------------------------------------
+        // 以下、ロジック部分（触らなくてOK）
+        // ------------------------------------------
+
+        let currentStep = 0;
+        let userTags = []; // ユーザーが選んだタグを蓄積
+        let userScoreBonus = 0; // ボーナススコア
+
+        const quizScreen = document.getElementById('quiz-screen');
+        const introScreen = document.getElementById('intro-screen');
+        const loadingScreen = document.getElementById('loading-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const progressBar = document.getElementById('progress-bar');
+        const currentQNum = document.getElementById('current-q-num');
+        const backBtn = document.getElementById('back-btn');
+        const resultsContainer = document.getElementById('results-container');
+
+        function startDiagnosis() {
+            introScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentStep];
+            questionText.textContent = q.text;
+            currentQNum.textContent = currentStep + 1;
+            progressBar.style.width = `${((currentStep) / questions.length) * 100}%`;
+
+            // 戻るボタンの表示制御
+            backBtn.style.visibility = currentStep > 0 ? 'visible' : 'hidden';
+
+            optionsContainer.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-xl border border-gray-200 transition-all font-medium text-slate-700 flex items-center justify-between group";
+                btn.style.animation = `fadeIn 0.4s ease-out ${idx * 0.1}s backwards`;
+                
+                btn.innerHTML = `
+                    <span>${opt.text}</span>
+                    <i data-lucide="chevron-right" class="text-gray-300 group-hover:text-indigo-500 transition-colors"></i>
+                `;
+                btn.onclick = () => handleAnswer(opt);
+                optionsContainer.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        function handleAnswer(option) {
+            // タグの蓄積
+            if (option.tags) {
+                userTags.push(...option.tags);
+            }
+            // スコアボーナスの蓄積
+            if (option.scoreBonus) {
+                userScoreBonus += option.scoreBonus;
+            }
+
+            if (currentStep < questions.length - 1) {
+                currentStep++;
+                renderQuestion();
+            } else {
+                finishDiagnosis();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                // 簡易的に最後の回答を取り消す（厳密なHistory管理は省略）
+                userTags.pop(); 
+                renderQuestion();
+            }
+        }
+
+        function finishDiagnosis() {
+            quizScreen.classList.add('hidden');
+            loadingScreen.classList.remove('hidden');
+            progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                showResult();
+            }, 2000); // 演出のため少し長めに
+        }
+
+        function showResult() {
+            resultScreen.classList.remove('hidden');
+
+            // --- マッチングロジック ---
+            const scoredProducts = products.map(prod => {
+                let score = 0;
+                
+                // 1. タグマッチング加点
+                prod.tags.forEach(tag => {
+                    // ユーザーが持っているタグと一致すれば加点
+                    if (userTags.includes(tag)) score += 3;
+                    // OSの一致は重要度高
+                    if ((tag === 'mac' && userTags.includes('mac')) || (tag === 'win' && userTags.includes('win'))) score += 5;
+                    // 両対応は少し加点
+                    if (tag === 'both') score += 1;
+                });
+
+                // 2. OS不一致の除外 (MacユーザーにWin専用は見せない、逆もしかり)
+                const isMacUser = userTags.includes('mac');
+                const isWinUser = userTags.includes('win');
+                if (isMacUser && prod.tags.includes('win') && !prod.tags.includes('both')) score = -999;
+                if (isWinUser && prod.tags.includes('mac') && !prod.tags.includes('both')) score = -999;
+
+                // 3. ボーナス加算（長時間作業・ハイエンド志向なら高額商品も出しやすくする等）
+                // 今回は単純にスコアに足す
+                score += userScoreBonus;
+
+                return { product: prod, score: score };
+            });
+
+            // スコア降順にソートして上位3つを取得
+            scoredProducts.sort((a, b) => b.score - a.score);
+            const topProducts = scoredProducts.filter(p => p.score > 0).slice(0, 3);
+
+            resultsContainer.innerHTML = '';
+            
+            if (topProducts.length === 0) {
+                resultsContainer.innerHTML = '<p class="text-center text-slate-500">条件に合う商品が見つかりませんでした。<br>もう少し条件を広げてみてください。</p>';
+                return;
+            }
+
+            topProducts.forEach((item, index) => {
+                const p = item.product;
+                const rankColor = index === 0 ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-200 text-slate-600';
+                const rankText = index === 0 ? 'Best Match' : `Recommend #${index + 1}`;
+                
+                // 検索URL生成
+                const searchUrl = `https://www.amazon.co.jp/s?k=${encodeURIComponent(p.keyword)}&tag=${AFFILIATE_ID}`;
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl p-6 shadow-md border border-gray-100 flex flex-col md:flex-row gap-6 items-start";
+                card.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-xs font-bold px-2 py-1 rounded ${rankColor}">${rankText}</span>
+                            <span class="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">${p.badge}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">${p.name}</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-4">${p.desc}</p>
+                        <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                            <i data-lucide="tag" class="w-3 h-3"></i>
+                            <span>マッチした要素: ${p.tags.filter(t => userTags.includes(t)).slice(0, 3).join(', ')}</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-48 flex-shrink-0 flex flex-col justify-end gap-2">
+                         <div class="text-right">
+                            <span class="text-xs text-slate-400">参考価格</span>
+                            <div class="text-xl font-bold text-slate-800">¥${p.price}</div>
+                        </div>
+                        <a href="${searchUrl}" target="_blank" class="amazon-btn w-full text-center py-3 rounded-lg text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2">
+                            Amazonで詳細を見る
+                            <i data-lucide="external-link" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                `;
+                resultsContainer.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function resetDiagnosis() {
+            currentStep = 0;
+            userTags = [];
+            userScoreBonus = 0;
+            resultScreen.classList.add('hidden');
+            introScreen.classList.remove('hidden');
+            progressBar.style.width = '0%';
+        }
+    </script>
+</body>
+</html>
