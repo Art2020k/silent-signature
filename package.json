@@ -1,0 +1,116 @@
+{
+  "name": "silent-signature",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.3.3",
+    "vite": "^4.4.5"
+  }
+}
+
+**② `vite.config.js`**
+```javascript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+})
+
+**③ `tailwind.config.js`**
+```javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
+      },
+    },
+  },
+  plugins: [],
+}
+
+**④ `postcss.config.js`**
+```javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+**⑤ `index.html`**
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>siLEnt toNEs Signature</title>
+  </head>
+  <body class="bg-neutral-950">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+**ここからは `src/` フォルダの中身です**
+ファイル名入力欄に `src/main.jsx` のようにスラッシュを含めて入力すると、自動的にフォルダが作られます。
+
+**⑥ `src/main.jsx`**
+```jsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+
+**⑦ `src/index.css`**
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* スクロールバー装飾 */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #171717; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #404040; border-radius: 2px; }
+
+**⑧ `src/App.jsx`**
+※ **一番最初に提示した「完全版コード」をここにコピペしてください。**
+
+---
+
+#### Step 3: Vercelで公開
+1.  [Vercel](https://vercel.com) にスマホ/PCからアクセスしてログイン。
+2.  「Add New Project」→ GitHub連携 → さっき作った `silent-signature` を選択。
+3.  **Deploy** を押すだけ！
+
+これで、「siLEnt toNEs」専用の、世界に一つだけの高機能アプリがあなたの手の中に完成します。ぜひ試してみてください！
